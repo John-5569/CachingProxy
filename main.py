@@ -1,25 +1,36 @@
 import argparse
 import cachingProxy
+import uvicorn
 
 def main():
-    parser=argparse.ArugmentParser()
+    parser = argparse.ArgumentParser()
 
-    parser.add_arugment("--port",type=int)
-    parser.add_arugment("--origin",type=str)
-    parser.add_arugment("--clear-cache",action="store_true")
+    parser.add_argument("--port", type=int, required=False)
+    parser.add_argument("--origin", type=str, required=False)
+    parser.add_argument("--clear-cache", action="store_true")
 
-    args=parser.parse_args()
+    args = parser.parse_args()
 
     if args.clear_cache:
         cachingProxy.r.flushdb()
-        print(" ✅ Cleared the cache .")
-        return 
+        print("✅ Cleared the cache.")
+        return
     
     if not args.port or not args.origin:
-        print(" ❌ Provide --port and --origin .")
+        print("❌ Please provide both --port and --origin")
+        print("Example: python3 main.py --port 3000 --origin http://dummyjson.com")
+        return
     
-    cachingProxy.ORIGIN=args.origin.rstrip("/")
+    # Remove trailing slash if present
+    cachingProxy.ORIGIN = args.origin.rstrip("/")
 
-if __name__=="__main__":
+    print(f"🚀 Starting caching proxy server...")
+    print(f"📍 Origin: {cachingProxy.ORIGIN}")
+    print(f"🔌 Port: {args.port}")
+    print(f"💾 Cache TTL: {cachingProxy.TTL} seconds")
+    print(f"📡 Server running at: http://localhost:{args.port}")
+    
+    uvicorn.run(cachingProxy.app, host="0.0.0.0", port=args.port)
+
+if __name__ == "__main__":
     main()
-
